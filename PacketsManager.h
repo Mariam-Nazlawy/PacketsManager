@@ -20,6 +20,7 @@ public:
     static bool compareByModTime(const fs::directory_entry& a, const fs::directory_entry& b);
     void sort(std::vector<fs::directory_entry>& files);
     void remove(std::vector<fs::directory_entry>& files);
+    void read_disk_c_size();
 
 };
 
