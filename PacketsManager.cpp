@@ -2,8 +2,13 @@
 #include <filesystem>
 #include <vector>
 #include "PacketsManager.h"
+#include <fstream>
 
 namespace fs = std::filesystem;
+
+PacketsManager::PacketsManager() {
+
+}
 
 void PacketsManager::set_disk_size(uintmax_t size) {
     disk_size = size;
@@ -19,6 +24,7 @@ void PacketsManager::read(){
                 total_size += fs::file_size(entry);
             }
         }
+
         std::cout << "Reading is done\n";
         std::cout << "Total size is: " << total_size / 1000 << " KB" << std::endl;
         check(total_size, files);
@@ -36,14 +42,14 @@ void PacketsManager::sort(std::vector<fs::directory_entry>& files) {
     std::sort(files.begin(), files.end(), compareByModTime);
 }
 
-void PacketsManager::check(uintmax_t s, std::vector<fs::directory_entry>& files){
-    if(s >= disk_size*95/100)
+void PacketsManager::check(uintmax_t size, std::vector<fs::directory_entry>& files){
+    if(size >= max_size)
     {
         std::cout << "95% of the available storage space has been consumed\n";
         remove(files);
     }
     else{
-        std::cout << "Remaining disk size: " << (disk_size - s)/1000 << " KB" << std::endl;
+        std::cout << "Remaining disk size: " << (disk_size - size)/1000 << " KB" << std::endl;
         std::cout << "NO deleted files ";
     }
 }
@@ -71,7 +77,7 @@ void  PacketsManager::remove(std::vector<fs::directory_entry>& files) {
         std::cerr << "Error: " << e.what() << std::endl;
     }
 }
-uintmax_t PacketsManager::get_disk_size() {
+uintmax_t  PacketsManager::get_disk_size() {
     return disk_size;
 }
 
@@ -80,8 +86,41 @@ void PacketsManager::read_disk_c_size() {
     std::filesystem::path c_drive_path = "C:";
     std::filesystem::space_info c_drive_space_info = std::filesystem::space(c_drive_path);
     uint64_t c_drive_size = c_drive_space_info.capacity;
+    const int convert_to_GB = (1024 * 1024 * 1024);
+    std::cout << "The current size of the drive C: " << c_drive_size/convert_to_GB << " GB." << std::endl;
 
-    std::cout << "The current size of the drive C: " << c_drive_size/(1024 * 1024 * 1024) << " GB." << std::endl;
+
+}
+
+void PacketsManager::read_from_config_file() {
+
+    try {
+        std::ifstream config_file("D:\\Internships\\VIAVI Internship 2023\\Project1_cppv2\\config.txt");
+        // Check if the file was opened successfully.
+        if (!config_file.is_open()) {
+            std::perror("Error opening the file");
+        }
+
+        std::string line;
+        std::string values[3];
+        int i = 0;
+
+        //read values from the config file
+        while (std::getline(config_file, line) && i < 3) {
+            values[i] = line.substr(line.find(':') + 1);
+            i++;
+        }
+
+        int const convert_to_bytes = 1000;
+
+        //set values to attributes
+        disk_size = std::stoi(values[0]) * convert_to_bytes;
+        max_size =  std::stoi(values[1]) * disk_size;
+        min_size =  std::stoi(values[2]) * disk_size;
+    }
+    catch (const std::exception& e) {
+        std::perror ("Error: ");
+    }
 
 
 }
