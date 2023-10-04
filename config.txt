@@ -1,0 +1,4 @@
+Disk size in KB:40000 
+Max allowed size precentage:.85
+Min allowed size precentage:.20
+Sleep time in mins:3 
